@@ -540,6 +540,132 @@ To get your new Subnet information, visit [Avascan Testnet](https://testnet.avas
 search best works by blockchain ID, so in this example, enter `2XDnKyAEr1RhhWpTpMXqrjeejN23vETmDykVzkb4PrU1fQjewh`
 into the search box and you should see your shiny new blockchain information.
 
+## Join a Subnet
+
+To add a running validator to a specific Subnet, run the `join` command.
+
+First, select a network:
+
+```bash
+avalanche subnet join testsubnet
+Use the arrow keys to navigate: ↓ ↑ → ←
+? Choose a network to validate on (this command only supports public networks):
+  ▸ Fuji
+    Mainnet
+```
+
+The [Deploy the Subnet](#deploy-the-subnet) section shows that a Subnet is permissioned
+via a set of keys. Therefore not any node is suitable as validator to the Subnet. A holder of a control
+key _must_ call
+[Subnet addValidator](../apis/avalanchego/apis/p-chain.md#platformaddsubnetvalidator) first in order
+to allow the node to validate the Subnet. So the tool allows the user now to verify if the node has
+already been permissioned -"whitelisted"- to be a validator for this Subnet -by calling an API in
+the background-.
+
+```bash
+Would you like to check if your node is allowed to join this subnet?
+If not, the subnet's control key holder must call avalanche subnet
+addValidator with your NodeID.
+Use the arrow keys to navigate: ↓ ↑ → ←
+? Check whitelist?:
+    Yes
+  ▸ No
+```
+
+The default is `Yes` but just choose `No` here to speed up things, assuming the node is already whitelisted.
+
+There are two choices: Automatic or Manual configuration. "Automatic" is going to attempt to edit a config file and set up your plugin directory, while
+"Manual" is going to just print the required config to the screen. See what "Automatic" does:
+
+```bash
+✔ Automatic
+✔ Path to your existing config file (or where it's going to be generated): config.json
+```
+
+Provide a path to a config file. If executing this command on the box where your
+validator is running, then you could point this to the actually used config file, for example
+`/etc/avalanchego/config.json` - just make sure the tool has **write** access to the file. Or you
+could just copy the file later. In any case, the tool is going to either try to edit the existing file
+specified by the given path, or create a new file. Again, set write permissions.
+
+Next, provide the plugin directory. The beginning of this tutorial contains VMs description
+[Virtual Machine](#virtual-machine). Each VM runs its own plugin, therefore AvalancheGo needs to
+be able to access the correspondent plugin binary. As this is the `join` command, which doesn't
+know yet about the plugin, there is a need to provide the directory where the plugin resides. Make
+sure to provide the location for your case:
+
+```bash
+✔ Path to your avalanchego plugin dir (likely avalanchego/build/plugins): /home/user/go/src/github.com/ava-labs/avalanchego/build/plugins
+```
+
+The tool doesn't know where exactly it's located so it requires the full path. With the path given,
+it's going to copy the VM binary to the provided location:
+
+```shell
+✔ Path to your avalanchego plugin dir (likely avalanchego/build/plugins): /home/user/go/src/github.com/ava-labs/avalanchego/build/plugins█
+VM binary written to /home/user/go/src/github.com/ava-labs/avalanchego/build/plugins/tGBrMADESojmu5Et9CpbGCrmVf9fiAJtZM5ZJ3YVDj5JTu2qw
+This is going to edit your existing config file. This edit is nondestructive,
+but it's always good to have a backup.
+Use the arrow keys to navigate: ↓ ↑ → ←
+? Proceed?:
+  ▸ Yes
+    No
+```
+
+Hitting `Yes` is going to attempt at writing the config file:
+
+<!-- markdownlint-disable MD013 -->
+
+```shell
+✔ Yes
+The config file has been edited. To use it, make sure to start the node with the '--config-file' option, e.g.
+
+./build/avalanchego --config-file config.json
+
+(using your binary location). The node has to be restarted for the changes to take effect.
+```
+
+<!-- markdownlint-enable MD013 -->
+
+It's **required to restart the node**.
+
+If choosing "Manual" instead, the tool is going to just print _instructions_. The user is going to have
+to follow these instructions and apply them to the node. Note that the IDs for the VM and Subnets is
+going to be different in your case.
+
+```bash
+✔ Manual
+
+To setup your node, you must do two things:
+
+1. Add your VM binary to your node's plugin directory
+2. Update your node config to start validating the subnet
+
+To add the VM to your plugin directory, copy or scp from /tmp/tGBrMADESojmu5Et9CpbGCrmVf9fiAJtZM5ZJ3YVDj5JTu2qw
+
+If you installed avalanchego manually, your plugin directory is likely
+avalanchego/build/plugins.
+
+If you start your node from the command line WITHOUT a config file (e.g. via command
+line or systemd script), add the following flag to your node's startup command:
+
+--track-subnets=2b175hLJhGdj3CzgXENso9CmwMgejaCQXhMFzBsm8hXbH2MF7H
+(if the node already has a track-subnets config, append the new value by
+comma-separating it).
+
+For example:
+./build/avalanchego --network-id=Fuji --track-subnets=2b175hLJhGdj3CzgXENso9CmwMgejaCQXhMFzBsm8hXbH2MF7H
+
+If you start the node via a JSON config file, add this to your config file:
+track-subnets: 2b175hLJhGdj3CzgXENso9CmwMgejaCQXhMFzBsm8hXbH2MF7H
+
+TIP: Try this command with the --avalanchego-config flag pointing to your config file,
+this tool is going to try to update the file automatically (make sure it can write to it).
+
+After you update your config, you are going to need to restart your node for the changes to
+take effect.
+```
+
 ## Add a Validator
 
 :::info
@@ -670,137 +796,6 @@ Transaction successful, transaction ID :EhZh8PvQyqA9xggxn6EsdemXMnWKyy839NzEJ5DH
 ```
 
 This means the node is now a validator on the given Subnet on `Fuji`!
-
-## Join a Subnet
-
-You might already have a running validator which you want to add to a specific Subnet. For this
-run the `join` command.
-This is a bit of a special command. The `join` command is going to either just _print the required
-instructions_ for your already running node or is going to attempt at configuring a config file the
-user provides.
-
-First network selection:
-
-```bash
-avalanche subnet join testsubnet
-Use the arrow keys to navigate: ↓ ↑ → ←
-? Choose a network to validate on (this command only supports public networks):
-  ▸ Fuji
-    Mainnet
-```
-
-The [Deploy the Subnet](#deploy-the-subnet) section shows that a Subnet is permissioned
-via a set of keys. Therefore not any node is suitable as validator to the Subnet. A holder of a control
-key _must_ call
-[Subnet addValidator](../apis/avalanchego/apis/p-chain.md#platformaddsubnetvalidator) first in order
-to allow the node to validate the Subnet. So the tool allows the user now to verify if the node has
-already been permissioned -"whitelisted"- to be a validator for this Subnet -by calling an API in
-the background-.
-
-```bash
-Would you like to check if your node is allowed to join this subnet?
-If not, the subnet's control key holder must call avalanche subnet
-addValidator with your NodeID.
-Use the arrow keys to navigate: ↓ ↑ → ←
-? Check whitelist?:
-    Yes
-  ▸ No
-```
-
-The default is `Yes` but just choose `No` here to speed up things, assuming the node is already whitelisted.
-
-There are now two choices possible: automatic and Manual configuration. As mentioned earlier,
-"Automatic" is going to attempt at editing a config file and setting up your plugin directory, while
-"Manual" is going to just print the required config to the screen. See what "Automatic" does:
-
-```bash
-✔ Automatic
-✔ Path to your existing config file (or where it's going to be generated): config.json
-```
-
-Provide a path to a config file. If executing this command on the box where your
-validator is running, then you could point this to the actually used config file, for example
-`/etc/avalanchego/config.json` - just make sure the tool has **write** access to the file. Or you
-could just copy the file later. In any case, the tool is going to either try to edit the existing file
-specified by the given path, or create a new file. Again, set write permissions.
-
-Next, provide the plugin directory. The beginning of this tutorial contains VMs description
-[Virtual Machine](#virtual-machine). Each VM runs its own plugin, therefore AvalancheGo needs to
-be able to access the correspondent plugin binary. As this is the `join` command, which doesn't
-know yet about the plugin, there is a need to provide the directory where the plugin resides. Make
-sure to provide the location for your case:
-
-```bash
-✔ Path to your avalanchego plugin dir (likely avalanchego/build/plugins): /home/user/go/src/github.com/ava-labs/avalanchego/build/plugins
-```
-
-The tool doesn't know where exactly it's located so it requires the full path. With the path given,
-it's going to copy the VM binary to the provided location:
-
-```shell
-✔ Path to your avalanchego plugin dir (likely avalanchego/build/plugins): /home/user/go/src/github.com/ava-labs/avalanchego/build/plugins█
-VM binary written to /home/user/go/src/github.com/ava-labs/avalanchego/build/plugins/tGBrMADESojmu5Et9CpbGCrmVf9fiAJtZM5ZJ3YVDj5JTu2qw
-This is going to edit your existing config file. This edit is nondestructive,
-but it's always good to have a backup.
-Use the arrow keys to navigate: ↓ ↑ → ←
-? Proceed?:
-  ▸ Yes
-    No
-```
-
-Hitting `Yes` is going to attempt at writing the config file:
-
-<!-- markdownlint-disable MD013 -->
-
-```shell
-✔ Yes
-The config file has been edited. To use it, make sure to start the node with the '--config-file' option, e.g.
-
-./build/avalanchego --config-file config.json
-
-(using your binary location). The node has to be restarted for the changes to take effect.
-```
-
-<!-- markdownlint-enable MD013 -->
-
-It's **required to restart the node**.
-
-If choosing "Manual" instead, the tool is going to just print _instructions_. The user is going to have
-to follow these instructions and apply them to the node. Note that the IDs for the VM and Subnets is
-going to be different in your case.
-
-```bash
-✔ Manual
-
-To setup your node, you must do two things:
-
-1. Add your VM binary to your node's plugin directory
-2. Update your node config to start validating the subnet
-
-To add the VM to your plugin directory, copy or scp from /tmp/tGBrMADESojmu5Et9CpbGCrmVf9fiAJtZM5ZJ3YVDj5JTu2qw
-
-If you installed avalanchego manually, your plugin directory is likely
-avalanchego/build/plugins.
-
-If you start your node from the command line WITHOUT a config file (e.g. via command
-line or systemd script), add the following flag to your node's startup command:
-
---track-subnets=2b175hLJhGdj3CzgXENso9CmwMgejaCQXhMFzBsm8hXbH2MF7H
-(if the node already has a track-subnets config, append the new value by
-comma-separating it).
-
-For example:
-./build/avalanchego --network-id=Fuji --track-subnets=2b175hLJhGdj3CzgXENso9CmwMgejaCQXhMFzBsm8hXbH2MF7H
-
-If you start the node via a JSON config file, add this to your config file:
-track-subnets: 2b175hLJhGdj3CzgXENso9CmwMgejaCQXhMFzBsm8hXbH2MF7H
-
-TIP: Try this command with the --avalanchego-config flag pointing to your config file,
-this tool is going to try to update the file automatically (make sure it can write to it).
-
-After you update your config, you are going to need to restart your node for the changes to
-take effect.
-```
 
 ## Subnet Export
 
