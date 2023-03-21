@@ -554,16 +554,16 @@ Use the arrow keys to navigate: ↓ ↑ → ←
     Mainnet
 ```
 
+All nodes can join a subnet, but only nodes permissioned by the Subnet Admin can be a validator of the Subnet.
 The [Deploy the Subnet](#deploy-the-subnet) section shows that a Subnet is permissioned
-via a set of keys. Therefore not any node is suitable as validator to the Subnet. A holder of a control
-key _must_ call
+via a set of keys. A holder of a control key _must_ call
 [Subnet addValidator](../apis/avalanchego/apis/p-chain.md#platformaddsubnetvalidator) first in order
 to allow the node to validate the Subnet. So the tool allows the user now to verify if the node has
 already been permissioned -"whitelisted"- to be a validator for this Subnet -by calling an API in
 the background-.
 
 ```bash
-Would you like to check if your node is allowed to join this subnet?
+Would you like to check if your node is allowed to validate this subnet?
 If not, the subnet's control key holder must call avalanche subnet
 addValidator with your NodeID.
 Use the arrow keys to navigate: ↓ ↑ → ←
@@ -574,7 +574,8 @@ Use the arrow keys to navigate: ↓ ↑ → ←
 
 The default is `Yes` but just choose `No` here to speed up things, assuming the node is already whitelisted.
 
-There are two choices: Automatic or Manual configuration. "Automatic" is going to attempt to edit a config file and set up your plugin directory, while
+There are two choices: Automatic or Manual configuration. As mentioned earlier,
+"Automatic" is going to attempt to edit a config file and set up your plugin directory, while
 "Manual" is going to just print the required config to the screen. See what "Automatic" does:
 
 ```bash

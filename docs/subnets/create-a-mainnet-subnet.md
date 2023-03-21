@@ -495,7 +495,7 @@ avalanche subnet join testsubnet
 
 ### Select Mainnet
 
-First ask for network for which the validator is joining. Choose `Mainnet`:
+First, select the network that the validator is joining. Choose `Mainnet`:
 
 ```text
 Use the arrow keys to navigate: ↓ ↑ → ←
